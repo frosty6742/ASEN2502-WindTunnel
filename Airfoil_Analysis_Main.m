@@ -29,28 +29,32 @@ Segments = readtable('Port_Locations.xlsx','Sheet','Segments'); %Read in segment
 % Get filenames for test data files
 
 % --- 15mps ---
-fileLoc = '15 mps Data Files/';
-list = dir([fileLoc, '*AoA*']); % This lists all files in fileLoc with 'WTData' in the file name
-numFiles = length(list);
+fileLoc15   = '15 mps Data Files/';
+list15      = dir(fullfile(fileLoc15, '*AoA*'));
+numFiles15  = numel(list15);
 
-for i = 1:numFiles
-    fileNames15{i} = [fileLoc, list(i).name]; % This makes a string of the complete file name with the path in front of it
-    AoA15(i) = str2num(char(extractBetween(list(i).name, 'AoA_', '.csv'))); % Finds the angle of attack value in the name and make it a usable number
+fileNames15 = strings(numFiles15,1); % Convert to char array from cell array
+AoA15       = zeros(numFiles15,1); %Counts number of AoAs tested
+
+for i = 1:numFiles15
+    fileNames15(i) = fullfile(fileLoc15, list15(i).name); % This makes a string of the complete file name with the path in front of it
+    AoA15(i)       = str2double(extractBetween(list15(i).name, 'AoA_', '.csv')); % Finds the angle of attack value in the name and make it a usable number
 end
-fileNames15 = string(fileNames15); % Convert to char array from cell array
-AoA_Count15 = length(AoA15); %Counts number of AoAs tested
+AoA_Count15 = numFiles15;
 
 % --- 30mps ---
-fileLoc = '30 mps Data Files/';
-list = dir([fileLoc, '*AoA*']); % This lists all files in fileLoc with 'WTData' in the file name
-numFiles = length(list);
+fileLoc30   = '30 mps Data Files/';
+list30      = dir(fullfile(fileLoc30, '*AoA*'));
+numFiles30  = numel(list30);
 
-for i = 1:numFiles
-    fileNames30{i} = [fileLoc, list(i).name]; % This makes a string of the complete file name with the path in front of it
-    AoA30(i) = str2num(char(extractBetween(list(i).name, 'AoA_', '.csv'))); % Finds the angle of attack value in the name and make it a usable number
+fileNames30 = strings(numFiles30,1);
+AoA30       = zeros(numFiles30,1);
+
+for i = 1:numFiles30
+    fileNames30(i) = fullfile(fileLoc30, list30(i).name);
+    AoA30(i)       = str2double(extractBetween(list30(i).name, 'AoA_', '.csv'));
 end
-fileNames30 = string(fileNames30); % Convert to char array from cell array
-AoA_Count30 = length(AoA30); %Counts number of AoAs tested
+AoA_Count30 = numFiles30;
 
 %% Ingest Data Files and Data Conditioning
 % Averaging Raw Data Samples for each Velocity & AOA Tested
@@ -60,8 +64,8 @@ AoA_Count30 = length(AoA30); %Counts number of AoAs tested
     % Average Airfoil Port Local Static Pressure (done by student code)
 
 % Initialize Storage Arrays
-Data15 = zeros(numFiles,25); %Conditioned wind tunnel data file 15 m/s
-Data30 = zeros(numFiles,25); %Conditioned wind tunnel data file 30 m/s
+Data15 = zeros(numFiles15,25);  %Conditioned wind tunnel data file 15 m/s
+Data30 = zeros(numFiles30,25); %Conditioned wind tunnel data file 30 m/s
 
 %% Ingest and Condition Data
 % Averaging Raw Data Samples for each Velocity & AOA Tested
