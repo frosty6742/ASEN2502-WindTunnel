@@ -142,7 +142,50 @@ Data30 = sortrows(Data30,1);  % Sorts data by increasing AoA
 %% Determine Forces & Analyze Results
 % Pressure Distribution for each Velocity & AoA tested (done by student code)
 % Normal and Axial Force components Velocity & AoA tested (done by student code)
+% variables
+N15 = zeros(numFiles15,1);
+A15 = zeros(numFiles15,1); 
+
+for i = 1:numFiles15
+    for j = 1:9
+        N15(i) = N15(i) - 0.5*(Data15(i,j+7)+Data15(i,j+8))*Segments.DeltaX(j);
+        A15(i) = A15(i) + 0.5*(Data15(i,j+7)+Data15(i,j+8))*Segments.DeltaY(j);
+    end
+    for j = 1:8
+        N15(i) = N15(i) + 0.5*(Data15(i,mod(18-j,17)+8)+Data15(i,mod(17-j,17)+8))*Segments.DeltaX(j+9);
+        A15(i) = A15(i) - 0.5*(Data15(i,mod(18-j,17)+8)+Data15(i,mod(17-j,17)+8))*Segments.DeltaY(j+9);
+    end
+end
+
+N30 = zeros(numFiles30,1);
+A30 = zeros(numFiles30,1); 
+
+for i = 1:numFiles30
+    for j = 1:9
+        N30(i) = N30(i) - 0.5*(Data30(i,j+7)+Data30(i,j+8))*Segments.DeltaX(j);
+        A30(i) = A30(i) + 0.5*(Data30(i,j+7)+Data30(i,j+8))*Segments.DeltaY(j);
+    end
+    for j = 1:8
+        N30(i) = N30(i) + 0.5*(Data30(i,mod(18-j,17)+8)+Data30(i,mod(17-j,17)+8))*Segments.DeltaX(j+9);
+        A30(i) = A30(i) - 0.5*(Data30(i,mod(18-j,17)+8)+Data30(i,mod(17-j,17)+8))*Segments.DeltaY(j+9);
+    end
+end
+
 % Lift & Coefficient of Lift Velocity & AoA tested (done by student code)
+% variables
+L15 = zeros(numFiles15,1);
+
+for i = 1:numFiles15
+    L15(i) = N15(i)*cos(pi/180*Data15(i,1))-A15(i)*sin(pi/180*Data15(i,1));
+end
+
+L30 = zeros(numFiles30,1);
+
+for i = 1:numFiles30
+    L30(i) = N30(i)*cos(pi/180*Data30(i,1))-A30(i)*sin(pi/180*Data30(i,1));
+end
+
+
 
 %% Plots
 % Velocity vs normalized chord (x/c)
