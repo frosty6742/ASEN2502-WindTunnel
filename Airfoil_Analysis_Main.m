@@ -174,7 +174,7 @@ end
 % Lift & Coefficient of Lift Velocity & AoA tested (done by student code)
 % variables
 L15 = zeros(numFiles15,1);
-CL15 = zeros(numFiles15,1)
+CL15 = zeros(numFiles15,1);
 
 for i = 1:numFiles15
     L15(i) = N15(i)*cos(pi/180*Data15(i,1))-A15(i)*sin(pi/180*Data15(i,1));
@@ -192,13 +192,44 @@ end
 
 
 %% Plots
+x_ports_all = Ports.X_m(1:16).';  
+
+Cp15_front = (Data15(:, 8:16)  - Data15(:, 7)) ./ Data15(:, 6);   % ports 1..9
+Cp15_back  = (Data15(:, 18:24) - Data15(:, 7)) ./ Data15(:, 6);   % ports 10..16
+Cp15_all   = [Cp15_front, Cp15_back];
+
+Cp30_front = (Data30(:, 8:16)  - Data30(:, 7)) ./ Data30(:, 6);
+Cp30_back  = (Data30(:, 18:24) - Data30(:, 7)) ./ Data30(:, 6);
+Cp30_all   = [Cp30_front, Cp30_back];
+
 % Velocity vs normalized chord (x/c)
+
 % Coefficient of Pressure vs normalized chord (x/c)
+figure; hold on;
+for j = 1:size(Cp15_all,1)
+    plot(x_ports_all, Cp15_all(j,:), 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j,1)));
+end
+for j = 1:size(Cp30_all,1)
+    plot(x_ports_all, Cp30_all(j,:), 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)));
+end
+set(gca,'YDir','reverse'); % conventional Cp plotting (more negative Cp higher on the plot)
+xlabel('Normalized Chord, x/c');
+ylabel('Pressure Coefficient, C_p');
+title('C_p vs x/c for 15 m/s and 30 m/s');
+legend('show','Location','best');
+grid on;
+hold off;
+
 % Coefficient of Lift vs Angle of Attack
+figure; hold on;
+plot(Data15(:,1), CL15, 'DisplayName', '15 mps');
+plot(Data30(:,1), CL30, 'DisplayName', '30 mps');
 
-
-
-
-
+ylabel('Coefficient of Lift');
+xlabel('AoA');
+title('Coefficient of Lift vs Angle of Attack');
+legend('show','Location','best');
+grid on;
+hold off;
 
 
