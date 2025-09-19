@@ -174,15 +174,19 @@ end
 % Lift & Coefficient of Lift Velocity & AoA tested (done by student code)
 % variables
 L15 = zeros(numFiles15,1);
+CL15 = zeros(numFiles15,1)
 
 for i = 1:numFiles15
     L15(i) = N15(i)*cos(pi/180*Data15(i,1))-A15(i)*sin(pi/180*Data15(i,1));
+    CL15(i) = L15(i)/Data15(i,6);
 end
 
 L30 = zeros(numFiles30,1);
+CL30 = zeros(numFiles30,1);
 
 for i = 1:numFiles30
     L30(i) = N30(i)*cos(pi/180*Data30(i,1))-A30(i)*sin(pi/180*Data30(i,1));
+    CL30(i) = L30(i)/Data30(i,6);
 end
 
 
@@ -191,8 +195,6 @@ end
 % Velocity vs normalized chord (x/c)
 % Coefficient of Pressure vs normalized chord (x/c)
 % Coefficient of Lift vs Angle of Attack
-
-
 
 
 
