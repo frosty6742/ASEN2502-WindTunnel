@@ -203,6 +203,20 @@ Cp30_back  = (Data30(:, 18:24) - Data30(:, 7)) ./ Data30(:, 6);
 Cp30_all   = [Cp30_front, Cp30_back];
 
 % Velocity vs normalized chord (x/c)
+figure; hold on;
+for j = 1:size(Data15, 1)
+    plot(x_ports_all, Data15(j, 2) * ones(size(x_ports_all)), 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j, 1)));
+end
+for j = 1:size(Data30, 1)
+    plot(x_ports_all, Data30(j, 2) * ones(size(x_ports_all)), 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j, 1)));
+end
+xlabel('Normalized Chord, x/c');
+ylabel('Velocity (m/s)');
+title('Velocity vs x/c for 15 m/s and 30 m/s');
+set(gca, 'FontSize', 40);
+legend('show','Location','best');
+grid on;
+hold off;
 
 % Coefficient of Pressure vs normalized chord (x/c)
 figure; hold on;
@@ -216,6 +230,7 @@ set(gca,'YDir','reverse'); % conventional Cp plotting (more negative Cp higher o
 xlabel('Normalized Chord, x/c');
 ylabel('Pressure Coefficient, C_p');
 title('C_p vs x/c for 15 m/s and 30 m/s');
+set(gca, 'FontSize', 40);
 legend('show','Location','best');
 grid on;
 hold off;
@@ -228,6 +243,7 @@ plot(Data30(:,1), CL30, 'DisplayName', '30 mps');
 ylabel('Coefficient of Lift');
 xlabel('AoA');
 title('Coefficient of Lift vs Angle of Attack');
+set(gca, 'FontSize', 40);
 legend('show','Location','best');
 grid on;
 hold off;
