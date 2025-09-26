@@ -243,7 +243,7 @@ plot(Data30(:,1), CL30, 'DisplayName', '30 mps');
 ylabel('Coefficient of Lift');
 xlabel('AoA');
 title('Coefficient of Lift vs Angle of Attack');
-set(gca, 'FontSize', 40);
+%set(gca, 'FontSize', 40);
 legend('show','Location','best');
 grid on;
 hold off;
