@@ -25,6 +25,8 @@ addpath(genpath('30 mps Data Files')); %Adds 30 m/s test data files folder and s
 Ports = readtable('Port_Locations.xlsx','Sheet','Port_Locations'); %Read in CSV file with port locations
 Segments = readtable('Port_Locations.xlsx','Sheet','Segments'); %Read in segment information from CSV file
 
+%% User/Geometry Parameters
+
 %% Search Data Folders, Pull File Names & Count Data Files
 % Get filenames for test data files
 
@@ -104,9 +106,8 @@ for j = 1:numFiles15
     end
 
     Data15(j,25) = Data15(j,8); % Repeat port 1 
-
 end
-Data15 = sortrows(Data15,1); % Sorts data by increasing Ao
+Data15 = sortrows(Data15,1); % Sorts data by increasing AoA
 
 %% --- Ingest & condition: 30mps ---
 for j = 1:numFiles30
@@ -178,7 +179,8 @@ CL15 = zeros(numFiles15,1);
 
 for i = 1:numFiles15
     L15(i) = N15(i)*cos(pi/180*Data15(i,1))-A15(i)*sin(pi/180*Data15(i,1));
-    CL15(i) = L15(i)/Data15(i,6);
+    % normalize by q * chord (force per unit span assumption)
+    CL15(i) = L15(i) / (Data15(i,6) * c);
 end
 
 L30 = zeros(numFiles30,1);
@@ -186,66 +188,82 @@ CL30 = zeros(numFiles30,1);
 
 for i = 1:numFiles30
     L30(i) = N30(i)*cos(pi/180*Data30(i,1))-A30(i)*sin(pi/180*Data30(i,1));
-    CL30(i) = L30(i)/Data30(i,6);
+    % normalize by q * chord (force per unit span assumption)
+    CL30(i) = L30(i) / (Data30(i,6) * c);
 end
 
+%% Plots (auto-normalize x by chord from Ports.X_m)
+% Use the measured chord from the port map so x/c spans 0→1
+c_plot = max(Ports.X_m);                 % chord [m] inferred from last port
+x_over_c = Ports.X_m(1:16).' ./ c_plot;  % normalized chord positions (0..1)
 
+% Split x by surface: ports 1..9 (upper), 10..16 (lower)
+xU = x_over_c(1:9);
+xL = x_over_c(10:16);
 
-%% Plots
-x_ports_all = Ports.X_m(1:16).';  
-
+% Cp arrays from conditioned data
 Cp15_front = (Data15(:, 8:16)  - Data15(:, 7)) ./ Data15(:, 6);   % ports 1..9
 Cp15_back  = (Data15(:, 18:24) - Data15(:, 7)) ./ Data15(:, 6);   % ports 10..16
-Cp15_all   = [Cp15_front, Cp15_back];
-
 Cp30_front = (Data30(:, 8:16)  - Data30(:, 7)) ./ Data30(:, 6);
 Cp30_back  = (Data30(:, 18:24) - Data30(:, 7)) ./ Data30(:, 6);
-Cp30_all   = [Cp30_front, Cp30_back];
 
 % Velocity vs normalized chord (x/c)
+% Sort each surface by x/c and reorder Cp to match (avoid cross-surface jumps)
+[xU_sorted, idxU] = sort(xU,'ascend');
+[xL_sorted, idxL] = sort(xL,'ascend');
+
+Cp15U = Cp15_front(:, idxU);
+Cp15L = Cp15_back(:,  idxL);
+Cp30U = Cp30_front(:, idxU);
+Cp30L = Cp30_back(:,  idxL);
+
+% Velocity ratio V/Vinf from Cp, per surface
+VoverV15U = sqrt(max(0, 1 - Cp15U));
+VoverV15L = sqrt(max(0, 1 - Cp15L));
+VoverV30U = sqrt(max(0, 1 - Cp30U));
+VoverV30L = sqrt(max(0, 1 - Cp30L));
+
 figure; hold on;
-for j = 1:size(Data15, 1)
-    plot(x_ports_all, Data15(j, 2) * ones(size(x_ports_all)), 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j, 1)));
+for j = 1:size(VoverV15U, 1)
+    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)));
+    plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off');
 end
-for j = 1:size(Data30, 1)
-    plot(x_ports_all, Data30(j, 2) * ones(size(x_ports_all)), 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j, 1)));
+for j = 1:size(VoverV30U, 1)
+    plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)));
+    plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off');
 end
 xlabel('Normalized Chord, x/c');
-ylabel('Velocity (m/s)');
-title('Velocity vs x/c for 15 m/s and 30 m/s');
-set(gca, 'FontSize', 40);
-legend('show','Location','best');
-grid on;
+ylabel('Velocity Ratio, V/V_\infty');
+title('V/V_\infty vs x/c for 15 m/s and 30 m/s');
+xlim([0 1]); grid on;
+legend('Location','eastoutside');
 hold off;
 
 % Coefficient of Pressure vs normalized chord (x/c)
 figure; hold on;
-for j = 1:size(Cp15_all,1)
-    plot(x_ports_all, Cp15_all(j,:), 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j,1)));
+for j = 1:size(Cp15U,1)
+    plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)));
+    plot(xL_sorted, Cp15L(j,:), '-', 'HandleVisibility','off');
 end
-for j = 1:size(Cp30_all,1)
-    plot(x_ports_all, Cp30_all(j,:), 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)));
+for j = 1:size(Cp30U,1)
+    plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)));
+    plot(xL_sorted, Cp30L(j,:), '-', 'HandleVisibility','off');
 end
-set(gca,'YDir','reverse'); % conventional Cp plotting (more negative Cp higher on the plot)
+set(gca,'YDir','reverse'); % conventional Cp plotting
 xlabel('Normalized Chord, x/c');
 ylabel('Pressure Coefficient, C_p');
 title('C_p vs x/c for 15 m/s and 30 m/s');
-set(gca, 'FontSize', 40);
-legend('show','Location','best');
-grid on;
+xlim([0 1]); grid on;
+legend('Location','eastoutside');
 hold off;
 
 % Coefficient of Lift vs Angle of Attack
 figure; hold on;
-plot(Data15(:,1), CL15, 'DisplayName', '15 mps');
-plot(Data30(:,1), CL30, 'DisplayName', '30 mps');
-
+plot(Data15(:,1), CL15, 'o-', 'DisplayName', '15 m/s');
+plot(Data30(:,1), CL30, 'o-', 'DisplayName', '30 m/s');
+%plot(naca4airfoil('2412',100))
 ylabel('Coefficient of Lift');
-xlabel('AoA');
+xlabel('AoA (deg)');
 title('Coefficient of Lift vs Angle of Attack');
-%set(gca, 'FontSize', 40);
-legend('show','Location','best');
-grid on;
+grid on; legend('Location','best');
 hold off;
-
-
