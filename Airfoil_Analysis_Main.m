@@ -26,6 +26,7 @@ Ports = readtable('Port_Locations.xlsx','Sheet','Port_Locations'); %Read in CSV 
 Segments = readtable('Port_Locations.xlsx','Sheet','Segments'); %Read in segment information from CSV file
 
 %% User/Geometry Parameters
+c = 1.0;  % [m] chord length used for CL normalization
 
 %% Search Data Folders, Pull File Names & Count Data Files
 % Get filenames for test data files
