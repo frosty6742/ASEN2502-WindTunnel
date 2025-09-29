@@ -218,41 +218,59 @@ Cp15L = Cp15_back(:,  idxL);
 Cp30U = Cp30_front(:, idxU);
 Cp30L = Cp30_back(:,  idxL);
 
+
+%zero lift = 15, j=12, 30 j=10
+%6 degres 15 j=21, 30 j=21 
+%stalled = 15, j =25, 30 j =28
+
+
 % Velocity ratio V/Vinf from Cp, per surface
 VoverV15U = sqrt(max(0, 1 - Cp15U));
 VoverV15L = sqrt(max(0, 1 - Cp15L));
 VoverV30U = sqrt(max(0, 1 - Cp30U));
 VoverV30L = sqrt(max(0, 1 - Cp30L));
 
+plot15I = [12, 21, 25];
+plot30I = [10, 21, 28];
+
+clrs = strings(numFiles15, 7);
+clrs(12) = '#890608';
+clrs(10) = clrs(12);
+clrs(21) = '#8b8d00';
+clrs(25) = '#63be1e';
+clrs(28) = clrs(25);
+
 figure; hold on;
-for j = 1:size(VoverV15U, 1)
-    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)));
-    plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off');
+for j = plot15I
+    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)), 'Color', clrs(j));
+    plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
 ylabel('Velocity Ratio, V/V_\infty');
 title('V/V_\infty vs x/c for 15 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
+
 hold off;
 
 figure; hold on;
-for j = 1:size(VoverV30U, 1)
-    plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)));
-    plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off');
+for j = plot30I
+    plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)), 'Color', clrs(j));
+    plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
 ylabel('Velocity Ratio, V/V_\infty');
 title('V/V_\infty vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
+
 hold off;
 
 % Coefficient of Pressure vs normalized chord (x/c)
 figure; hold on;
-for j = 1:size(Cp15U,1)
-    plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)));
-    plot(xL_sorted, Cp15L(j,:), '-', 'HandleVisibility','off');
+for j=plot15I
+    plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)),'Color', clrs(j));
+    plot(xL_sorted, Cp15L(j,:), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 set(gca,'YDir','reverse'); % conventional Cp plotting
 xlabel('Normalized Chord, x/c');
@@ -260,12 +278,13 @@ ylabel('Pressure Coefficient, C_p');
 title('C_p vs x/c for 15 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
+
 hold off;
 
 figure; hold on;
-for j = 1:size(Cp30U,1)
-    plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)));
-    plot(xL_sorted, Cp30L(j,:), '-', 'HandleVisibility','off');
+for j = plot30I
+    plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)), 'Color', clrs(j));
+    plot(xL_sorted, Cp30L(j,:), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 set(gca,'YDir','reverse'); % conventional Cp plotting
 xlabel('Normalized Chord, x/c');
@@ -273,13 +292,14 @@ ylabel('Pressure Coefficient, C_p');
 title('C_p vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
+    
 hold off;
 
 % Coefficient of Lift vs Angle of Attack
 figure; hold on;
 plot(Data15(:,1), CL15, 'o-', 'DisplayName', '15 m/s');
 plot(Data30(:,1), CL30, 'o-', 'DisplayName', '30 m/s');
-%plot(naca4airfoil('2412',100))
+%plot(NACA_data(:,1), NACA_data(:,2), 'DisplayName', 'NACA TR 628');
 ylabel('Coefficient of Lift');
 xlabel('AoA (deg)');
 title('Coefficient of Lift vs Angle of Attack');
