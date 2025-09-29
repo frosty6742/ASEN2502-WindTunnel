@@ -223,6 +223,19 @@ Cp30L = Cp30_back(:,  idxL);
 %6 degres 15 j=21, 30 j=21 
 %stalled = 15, j =25, 30 j =28
 
+% zero lift 
+% 15mps -3 degrees 
+% 30mps -5 degrees 
+
+%6 degrees 
+%15mps 6 degrees
+%30mps 6 degrees
+
+% Stalled
+%15mps 10 degrees
+%30mps 13 degrees 
+
+
 
 % Velocity ratio V/Vinf from Cp, per surface
 VoverV15U = sqrt(max(0, 1 - Cp15U));
