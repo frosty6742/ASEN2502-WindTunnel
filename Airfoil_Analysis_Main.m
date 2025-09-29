@@ -229,13 +229,21 @@ for j = 1:size(VoverV15U, 1)
     plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)));
     plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off');
 end
+xlabel('Normalized Chord, x/c');
+ylabel('Velocity Ratio, V/V_\infty');
+title('V/V_\infty vs x/c for 15 m/s');
+xlim([0 1]); grid on;
+legend('Location','eastoutside');
+hold off;
+
+figure; hold on;
 for j = 1:size(VoverV30U, 1)
     plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)));
     plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off');
 end
 xlabel('Normalized Chord, x/c');
 ylabel('Velocity Ratio, V/V_\infty');
-title('V/V_\infty vs x/c for 15 m/s and 30 m/s');
+title('V/V_\infty vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
 hold off;
