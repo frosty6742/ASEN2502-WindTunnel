@@ -223,7 +223,7 @@ Cp30L = Cp30_back(:,  idxL);
 %6 degres 15 j=21, 30 j=21 
 %stalled = 15, j =25, 30 j =28
 
-% zero lift - Green 
+% zero lift - Red 
 % 15mps -3 degrees 
 % 30mps -5 degrees 
 
@@ -231,7 +231,7 @@ Cp30L = Cp30_back(:,  idxL);
 %15mps 6 degrees
 %30mps 6 degrees
 
-% Stalled - Red 
+% Stalled - Green 
 %15mps 10 degrees
 %30mps 13 degrees 
 
