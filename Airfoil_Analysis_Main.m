@@ -254,6 +254,15 @@ for j = 1:size(Cp15U,1)
     plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)));
     plot(xL_sorted, Cp15L(j,:), '-', 'HandleVisibility','off');
 end
+set(gca,'YDir','reverse'); % conventional Cp plotting
+xlabel('Normalized Chord, x/c');
+ylabel('Pressure Coefficient, C_p');
+title('C_p vs x/c for 15 m/s');
+xlim([0 1]); grid on;
+legend('Location','eastoutside');
+hold off;
+
+figure; hold on;
 for j = 1:size(Cp30U,1)
     plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)));
     plot(xL_sorted, Cp30L(j,:), '-', 'HandleVisibility','off');
@@ -261,7 +270,7 @@ end
 set(gca,'YDir','reverse'); % conventional Cp plotting
 xlabel('Normalized Chord, x/c');
 ylabel('Pressure Coefficient, C_p');
-title('C_p vs x/c for 15 m/s and 30 m/s');
+title('C_p vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
 hold off;
