@@ -249,10 +249,10 @@ plot30I = [10, 21, 28];
 angleNames = ['Zero Lift', '6 Degrees', 'Stalled'];
 
 clrs = strings(numFiles15, 7);
-clrs(12) = '#890608';
+clrs(12) = '#a56b00';
 clrs(10) = clrs(12);
-clrs(21) = '#8b8d00';
-clrs(25) = '#63be1e';
+clrs(21) = '#b9975b';
+clrs(25) = '#41330d';
 clrs(28) = clrs(25);
 
 figure; hold on;
