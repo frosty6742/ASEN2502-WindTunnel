@@ -246,6 +246,8 @@ VoverV30L = sqrt(max(0, 1 - Cp30L));
 plot15I = [12, 21, 25];
 plot30I = [10, 21, 28];
 
+angleNames = ['Zero Lift', '6 Degrees', 'Stalled'];
+
 clrs = strings(numFiles15, 7);
 clrs(12) = '#890608';
 clrs(10) = clrs(12);
@@ -255,7 +257,7 @@ clrs(28) = clrs(25);
 
 figure; hold on;
 for j = plot15I
-    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)), 'Color', clrs(j));
+    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° %s', Data15(j,1)), 'Color', clrs(j));
     plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
@@ -263,12 +265,13 @@ ylabel('Velocity Ratio, V/V_\infty');
 title('V/V_\infty vs x/c for 15 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
-
+theme(gcf, 'light');
+exportgraphics(gcf, 'figures/VvsXC_15mps.pdf', 'ContentType', 'vector');
 hold off;
 
 figure; hold on;
 for j = plot30I
-    plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)), 'Color', clrs(j));
+    plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)), 'Color', clrs(j));
     plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
@@ -276,13 +279,14 @@ ylabel('Velocity Ratio, V/V_\infty');
 title('V/V_\infty vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
-
+theme(gcf, 'light');
+exportgraphics(gcf, 'figures/VvsXC_30mps.pdf', 'ContentType', 'vector');
 hold off;
 
 % Coefficient of Pressure vs normalized chord (x/c)
 figure; hold on;
 for j=plot15I
-    plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° (upper)', Data15(j,1)),'Color', clrs(j));
+    plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j,1)),'Color', clrs(j));
     plot(xL_sorted, Cp15L(j,:), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 set(gca,'YDir','reverse'); % conventional Cp plotting
@@ -291,12 +295,13 @@ ylabel('Pressure Coefficient, C_p');
 title('C_p vs x/c for 15 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
-
+theme(gcf, 'light');
+exportgraphics(gcf, 'figures/CPvsXC_15mps.pdf', 'ContentType', 'vector');
 hold off;
 
 figure; hold on;
 for j = plot30I
-    plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f° (upper)', Data30(j,1)), 'Color', clrs(j));
+    plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)), 'Color', clrs(j));
     plot(xL_sorted, Cp30L(j,:), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 set(gca,'YDir','reverse'); % conventional Cp plotting
@@ -305,7 +310,8 @@ ylabel('Pressure Coefficient, C_p');
 title('C_p vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
-    
+theme(gcf, 'light');
+exportgraphics(gcf, 'figures/CPvsXC_30mps.pdf', 'ContentType', 'vector');
 hold off;
 
 % Coefficient of Lift vs Angle of Attack
@@ -317,4 +323,6 @@ ylabel('Coefficient of Lift');
 xlabel('AoA (deg)');
 title('Coefficient of Lift vs Angle of Attack');
 grid on; legend('Location','best');
+theme(gcf, 'light');
+exportgraphics(gcf, 'figures/CLvsAoA.pdf', 'ContentType', 'vector');
 hold off;
