@@ -223,7 +223,7 @@ Cp30L = Cp30_back(:,  idxL);
 %6 degres 15 j=21, 30 j=21 
 %stalled = 15, j =25, 30 j =28
 
-% zero lift - Red 
+% zero lift - Black
 % 15mps -3 degrees 
 % 30mps -5 degrees 
 
@@ -231,7 +231,7 @@ Cp30L = Cp30_back(:,  idxL);
 %15mps 6 degrees
 %30mps 6 degrees
 
-% Stalled - Green 
+% Stalled - Gold 
 %15mps 10 degrees
 %30mps 13 degrees 
 
@@ -249,10 +249,10 @@ plot30I = [10, 21, 28];
 angleNames = ['Zero Lift', '6 Degrees', 'Stalled'];
 
 clrs = strings(numFiles15, 7);
-clrs(12) = '#a56b00';
+clrs(12) = '#040720';
 clrs(10) = clrs(12);
-clrs(21) = '#b9975b';
-clrs(25) = '#41330d';
+clrs(21) = '#700799';
+clrs(25) = '#b98d13';
 clrs(28) = clrs(25);
 
 figure; hold on;
@@ -261,8 +261,8 @@ for j = plot15I
     plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
-ylabel('Velocity Ratio, V/V_\infty');
-title('V/V_\infty vs x/c for 15 m/s');
+ylabel('Velocity Ratio, V/V inf');
+title('V/V inf vs x/c for 15 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
 theme(gcf, 'light');
@@ -275,8 +275,8 @@ for j = plot30I
     plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
-ylabel('Velocity Ratio, V/V_\infty');
-title('V/V_\infty vs x/c for 30 m/s');
+ylabel('Velocity Ratio, V/V inf');
+title('V/V inf vs x/c for 30 m/s');
 xlim([0 1]); grid on;
 legend('Location','eastoutside');
 theme(gcf, 'light');
@@ -321,7 +321,7 @@ plot(Data30(:,1), CL30, 'o-', 'DisplayName', '30 m/s');
 %plot(NACA_data(:,1), NACA_data(:,2), 'DisplayName', 'NACA TR 628');
 ylabel('Coefficient of Lift');
 xlabel('AoA (deg)');
-title('Coefficient of Lift vs Angle of Attack');
+title('Coefficient of Lift vs AoA');
 grid on; legend('Location','best');
 theme(gcf, 'light');
 exportgraphics(gcf, 'figures/CLvsAoA.pdf', 'ContentType', 'vector');
