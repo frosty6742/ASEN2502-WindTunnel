@@ -25,8 +25,20 @@ addpath(genpath('30 mps Data Files')); %Adds 30 m/s test data files folder and s
 Ports = readtable('Port_Locations.xlsx','Sheet','Port_Locations'); %Read in CSV file with port locations
 Segments = readtable('Port_Locations.xlsx','Sheet','Segments'); %Read in segment information from CSV file
 
-%% User/Geometry Parameters
-c = 1.0;  % [m] chord length used for CL normalization
+% --- Load Clark Y-14 data from Excel (AoA, Cl, Cd) ---
+NACA_data = readmatrix('ClarkY14_NACA_TR628.xlsx', 'Range', 'A4:C15');
+
+%% Geometry / chord handling (FIX)
+% Use measured chord from the port map so all normalizations are correct
+c = max(Ports.X_m);        % [m] chord length from geometry
+
+% Segments.DeltaX/DeltaY appear to already be in **meters** (based on CL
+% magnitude check). Use them directly without additional scaling.
+dX = Segments.DeltaX;   % [m]
+dY = Segments.DeltaY;   % [m]
+
+% Sanity prints to verify scales
+fprintf('Chord c = %.4f m | max(DeltaX) = %.5f m | max(DeltaY) = %.5f m\n', c, max(dX), max(dY));
 
 %% Search Data Folders, Pull File Names & Count Data Files
 % Get filenames for test data files
@@ -49,10 +61,8 @@ AoA_Count15 = numFiles15;
 fileLoc30   = '30 mps Data Files/';
 list30      = dir(fullfile(fileLoc30, '*AoA*'));
 numFiles30  = numel(list30);
-
 fileNames30 = strings(numFiles30,1);
 AoA30       = zeros(numFiles30,1);
-
 for i = 1:numFiles30
     fileNames30(i) = fullfile(fileLoc30, list30(i).name);
     AoA30(i)       = str2double(extractBetween(list30(i).name, 'AoA_', '.csv'));
@@ -86,43 +96,36 @@ for j = 1:numFiles15
     Data15(j,2) = mean(RawData15(:,4));% V_test
     Data15(j,3) = mean(RawData15(:,2));% Patm 
     Data15(j,4) = mean(RawData15(:,1));% Tatm
-    Data15(j,5) = mean(RawData15(:,3));% rho (calced density)
-    Data15(j,6) = mean(RawData15(:,5));% q_test (test section dynamic pressure)
-    Data15(j,7) = Data15(j,3) - Data15(j,6);  % P_static_test = Patm - q
-
-    % Ports 1 through 9: Raw differential is (P_port - P_static_test)
-    % Convert to absolute P_port = (P_port - P_static_test) + P_static_test.
-    for k = 8:16                      % k indexes output columns; 8 to port1, ..., 16 to port9
+    Data15(j,5) = mean(RawData15(:,3));% rho
+    Data15(j,6) = mean(RawData15(:,5));% q_test
+    Data15(j,7) = Data15(j,3) - Data15(j,6);  % P_static_test
+    % Ports 1..9 (absolute pressure)
+    for k = 8:16
         deltaP = mean(RawData15(:,k+7));   % raw col 15..23
         Data15(j,k) = deltaP + Data15(j,7);
     end
 
     % Trailing edge assumed static test section
     Data15(j,17) = Data15(j,7);
-
     % Ports 10..16
-    for k = 18:24                      % k indexes output columns; 18 to port10, ..., 24 to port16
+    for k = 18:24
         deltaP = mean(RawData15(:,k+6));   % raw col 24..30
         Data15(j,k) = deltaP + Data15(j,7);
     end
-
-    Data15(j,25) = Data15(j,8); % Repeat port 1 
+    Data15(j,25) = Data15(j,8); % repeat port 1
 end
-Data15 = sortrows(Data15,1); % Sorts data by increasing AoA
+Data15 = sortrows(Data15,1);
 
 %% --- Ingest & condition: 30mps ---
 for j = 1:numFiles30
     RawData30 = readmatrix(fileNames30(j),'NumHeaderLines',1);
-
-    Data30(j,1) = AoA30(j);            % AoA
-    Data30(j,2) = mean(RawData30(:,4));% V_test
-    Data30(j,3) = mean(RawData30(:,2));% Patm
-    Data30(j,4) = mean(RawData30(:,1));% Tatm
-    Data30(j,5) = mean(RawData30(:,3));% rho
-    Data30(j,6) = mean(RawData30(:,5));% q_test
-    Data30(j,7) = Data30(j,3) - Data30(j,6);  % P_static_test
-
-    % Ports 1..9
+    Data30(j,1) = AoA30(j);
+    Data30(j,2) = mean(RawData30(:,4));
+    Data30(j,3) = mean(RawData30(:,2));
+    Data30(j,4) = mean(RawData30(:,1));
+    Data30(j,5) = mean(RawData30(:,3));
+    Data30(j,6) = mean(RawData30(:,5));
+    Data30(j,7) = Data30(j,3) - Data30(j,6);
     for k = 8:16
         deltaP = mean(RawData30(:,k+7));   % raw col 15..23
         Data30(j,k) = deltaP + Data30(j,7);
@@ -136,193 +139,128 @@ for j = 1:numFiles30
         deltaP = mean(RawData30(:,k+6));   % raw col 24..30
         Data30(j,k) = deltaP + Data30(j,7);
     end
-
-    Data30(j,25) = Data30(j,8);  % Repeat port 1
+    Data30(j,25) = Data30(j,8);
 end
-Data30 = sortrows(Data30,1);  % Sorts data by increasing AoA
+Data30 = sortrows(Data30,1);
 
 %% Determine Forces & Analyze Results
-% Pressure Distribution for each Velocity & AoA tested (done by student code)
-% Normal and Axial Force components Velocity & AoA tested (done by student code)
-% variables
-N15 = zeros(numFiles15,1);
-A15 = zeros(numFiles15,1); 
-
+% Integrate pressure to get normal (N) and axial (A) force per unit span.
+N15 = zeros(numFiles15,1); A15 = zeros(numFiles15,1);
 for i = 1:numFiles15
     for j = 1:9
-        N15(i) = N15(i) - 0.5*(Data15(i,j+7)+Data15(i,j+8))*Segments.DeltaX(j);
-        A15(i) = A15(i) + 0.5*(Data15(i,j+7)+Data15(i,j+8))*Segments.DeltaY(j);
+        N15(i) = N15(i) - 0.5*(Data15(i,j+7)+Data15(i,j+8)) * dX(j);
+        A15(i) = A15(i) + 0.5*(Data15(i,j+7)+Data15(i,j+8)) * dY(j);
     end
     for j = 1:8
-        N15(i) = N15(i) + 0.5*(Data15(i,mod(18-j,17)+8)+Data15(i,mod(17-j,17)+8))*Segments.DeltaX(j+9);
-        A15(i) = A15(i) - 0.5*(Data15(i,mod(18-j,17)+8)+Data15(i,mod(17-j,17)+8))*Segments.DeltaY(j+9);
+        N15(i) = N15(i) + 0.5*(Data15(i,mod(18-j,17)+8)+Data15(i,mod(17-j,17)+8)) * dX(j+9);
+        A15(i) = A15(i) - 0.5*(Data15(i,mod(18-j,17)+8)+Data15(i,mod(17-j,17)+8)) * dY(j+9);
     end
 end
 
-N30 = zeros(numFiles30,1);
-A30 = zeros(numFiles30,1); 
-
+N30 = zeros(numFiles30,1); A30 = zeros(numFiles30,1);
 for i = 1:numFiles30
     for j = 1:9
-        N30(i) = N30(i) - 0.5*(Data30(i,j+7)+Data30(i,j+8))*Segments.DeltaX(j);
-        A30(i) = A30(i) + 0.5*(Data30(i,j+7)+Data30(i,j+8))*Segments.DeltaY(j);
+        N30(i) = N30(i) - 0.5*(Data30(i,j+7)+Data30(i,j+8)) * dX(j);
+        A30(i) = A30(i) + 0.5*(Data30(i,j+7)+Data30(i,j+8)) * dY(j);
     end
     for j = 1:8
-        N30(i) = N30(i) + 0.5*(Data30(i,mod(18-j,17)+8)+Data30(i,mod(17-j,17)+8))*Segments.DeltaX(j+9);
-        A30(i) = A30(i) - 0.5*(Data30(i,mod(18-j,17)+8)+Data30(i,mod(17-j,17)+8))*Segments.DeltaY(j+9);
+        N30(i) = N30(i) + 0.5*(Data30(i,mod(18-j,17)+8)+Data30(i,mod(17-j,17)+8)) * dX(j+9);
+        A30(i) = A30(i) - 0.5*(Data30(i,mod(18-j,17)+8)+Data30(i,mod(17-j,17)+8)) * dY(j+9);
     end
 end
 
-% Lift & Coefficient of Lift Velocity & AoA tested (done by student code)
-% variables
-L15 = zeros(numFiles15,1);
-CL15 = zeros(numFiles15,1);
-
+% Lift & Coefficient of Lift (per-unit-span); normalize by q*c (FIX)
+L15 = zeros(numFiles15,1); CL15 = zeros(numFiles15,1);
 for i = 1:numFiles15
-    L15(i) = N15(i)*cos(pi/180*Data15(i,1))-A15(i)*sin(pi/180*Data15(i,1));
-    % normalize by q * chord (force per unit span assumption)
+    L15(i)  = N15(i)*cosd(Data15(i,1)) - A15(i)*sind(Data15(i,1));
     CL15(i) = L15(i) / (Data15(i,6) * c);
 end
 
-L30 = zeros(numFiles30,1);
-CL30 = zeros(numFiles30,1);
-
+L30 = zeros(numFiles30,1); CL30 = zeros(numFiles30,1);
 for i = 1:numFiles30
-    L30(i) = N30(i)*cos(pi/180*Data30(i,1))-A30(i)*sin(pi/180*Data30(i,1));
-    % normalize by q * chord (force per unit span assumption)
+    L30(i)  = N30(i)*cosd(Data30(i,1)) - A30(i)*sind(Data30(i,1));
     CL30(i) = L30(i) / (Data30(i,6) * c);
 end
 
-%% Plots (auto-normalize x by chord from Ports.X_m)
-% Use the measured chord from the port map so x/c spans 0→1
-c_plot = max(Ports.X_m);                 % chord [m] inferred from last port
-x_over_c = Ports.X_m(1:16).' ./ c_plot;  % normalized chord positions (0..1)
+%% Plot helpers
+x_over_c = Ports.X_m(1:16).' ./ c;  % normalized chord (0..1)
 
 % Split x by surface: ports 1..9 (upper), 10..16 (lower)
-xU = x_over_c(1:9);
-xL = x_over_c(10:16);
-
-% Cp arrays from conditioned data
-Cp15_front = (Data15(:, 8:16)  - Data15(:, 7)) ./ Data15(:, 6);   % ports 1..9
-Cp15_back  = (Data15(:, 18:24) - Data15(:, 7)) ./ Data15(:, 6);   % ports 10..16
-Cp30_front = (Data30(:, 8:16)  - Data30(:, 7)) ./ Data30(:, 6);
-Cp30_back  = (Data30(:, 18:24) - Data30(:, 7)) ./ Data30(:, 6);
-
-% Velocity vs normalized chord (x/c)
-% Sort each surface by x/c and reorder Cp to match (avoid cross-surface jumps)
+xU = x_over_c(1:9); xL = x_over_c(10:16);
 [xU_sorted, idxU] = sort(xU,'ascend');
 [xL_sorted, idxL] = sort(xL,'ascend');
 
-Cp15U = Cp15_front(:, idxU);
-Cp15L = Cp15_back(:,  idxL);
-Cp30U = Cp30_front(:, idxU);
-Cp30L = Cp30_back(:,  idxL);
+% Coefficient of pressure arrays (Cp)
+Cp15_front = (Data15(:, 8:16)  - Data15(:, 7)) ./ Data15(:, 6);
+Cp15_back  = (Data15(:, 18:24) - Data15(:, 7)) ./ Data15(:, 6);
+Cp30_front = (Data30(:, 8:16)  - Data30(:, 7)) ./ Data30(:, 6);
+Cp30_back  = (Data30(:, 18:24) - Data30(:, 7)) ./ Data30(:, 6);
 
+Cp15U = Cp15_front(:, idxU);  Cp15L = Cp15_back(:,  idxL);
+Cp30U = Cp30_front(:, idxU);  Cp30L = Cp30_back(:,  idxL);
 
-%zero lift = 15, j=12, 30 j=10
-%6 degres 15 j=21, 30 j=21 
-%stalled = 15, j =25, 30 j =28
-
-% zero lift - Red 
-% 15mps -3 degrees 
-% 30mps -5 degrees 
-
-%6 degrees - Yellow 
-%15mps 6 degrees
-%30mps 6 degrees
-
-% Stalled - Green 
-%15mps 10 degrees
-%30mps 13 degrees 
-
-
-
-% Velocity ratio V/Vinf from Cp, per surface
-VoverV15U = sqrt(max(0, 1 - Cp15U));
-VoverV15L = sqrt(max(0, 1 - Cp15L));
-VoverV30U = sqrt(max(0, 1 - Cp30U));
-VoverV30L = sqrt(max(0, 1 - Cp30L));
-
+%% Selected plot indices (example)
 plot15I = [12, 21, 25];
 plot30I = [10, 21, 28];
+clrs = strings(max([numFiles15 numFiles30]), 1);
+clrs(12) = "#890608"; clrs(10) = clrs(12);
+clrs(21) = "#8b8d00"; clrs(25) = "#63be1e"; clrs(28) = clrs(25);
 
-angleNames = ['Zero Lift', '6 Degrees', 'Stalled'];
-
-clrs = strings(numFiles15, 7);
-clrs(12) = '#890608';
-clrs(10) = clrs(12);
-clrs(21) = '#8b8d00';
-clrs(25) = '#63be1e';
-clrs(28) = clrs(25);
-
+%% V/Vinf vs x/c (15 m/s)
+VoverV15U = sqrt(max(0, 1 - Cp15U));
+VoverV15L = sqrt(max(0, 1 - Cp15L));
 figure; hold on;
 for j = plot15I
-    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° %s', Data15(j,1)), 'Color', clrs(j));
+    plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j,1)), 'Color', clrs(j));
     plot(xL_sorted, VoverV15L(j, :), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
-xlabel('Normalized Chord, x/c');
-ylabel('Velocity Ratio, V/V_\infty');
-title('V/V_\infty vs x/c for 15 m/s');
-xlim([0 1]); grid on;
-legend('Location','eastoutside');
-theme(gcf, 'light');
-exportgraphics(gcf, 'figures/VvsXC_15mps.pdf', 'ContentType', 'vector');
-hold off;
+xlabel('Normalized Chord, x/c'); ylabel('Velocity Ratio, V/V_\infty');
+title('V/V_\infty vs x/c for 15 m/s'); xlim([0 1]); grid on; legend('Location','eastoutside');
+if exist('theme','file'); theme(gcf,'light'); end
+exportgraphics(gcf, 'figures/VvsXC_15mps.pdf', 'ContentType', 'vector'); hold off;
 
+%% V/Vinf vs x/c (30 m/s)
+VoverV30U = sqrt(max(0, 1 - Cp30U));
+VoverV30L = sqrt(max(0, 1 - Cp30L));
 figure; hold on;
 for j = plot30I
     plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)), 'Color', clrs(j));
     plot(xL_sorted, VoverV30L(j, :), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
-xlabel('Normalized Chord, x/c');
-ylabel('Velocity Ratio, V/V_\infty');
-title('V/V_\infty vs x/c for 30 m/s');
-xlim([0 1]); grid on;
-legend('Location','eastoutside');
-theme(gcf, 'light');
-exportgraphics(gcf, 'figures/VvsXC_30mps.pdf', 'ContentType', 'vector');
-hold off;
+xlabel('Normalized Chord, x/c'); ylabel('Velocity Ratio, V/V_\infty');
+title('V/V_\infty vs x/c for 30 m/s'); xlim([0 1]); grid on; legend('Location','eastoutside');
+if exist('theme','file'); theme(gcf,'light'); end
+exportgraphics(gcf, 'figures/VvsXC_30mps.pdf', 'ContentType', 'vector'); hold off;
 
-% Coefficient of Pressure vs normalized chord (x/c)
+%% Cp vs x/c (15 m/s)
 figure; hold on;
 for j=plot15I
     plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j,1)),'Color', clrs(j));
     plot(xL_sorted, Cp15L(j,:), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
-set(gca,'YDir','reverse'); % conventional Cp plotting
-xlabel('Normalized Chord, x/c');
-ylabel('Pressure Coefficient, C_p');
-title('C_p vs x/c for 15 m/s');
-xlim([0 1]); grid on;
-legend('Location','eastoutside');
-theme(gcf, 'light');
-exportgraphics(gcf, 'figures/CPvsXC_15mps.pdf', 'ContentType', 'vector');
-hold off;
+set(gca,'YDir','reverse'); xlabel('Normalized Chord, x/c'); ylabel('Pressure Coefficient, C_p');
+title('C_p vs x/c for 15 m/s'); xlim([0 1]); grid on; legend('Location','eastoutside');
+if exist('theme','file'); theme(gcf,'light'); end
+exportgraphics(gcf, 'figures/CPvsXC_15mps.pdf', 'ContentType', 'vector'); hold off;
 
+%% Cp vs x/c (30 m/s)
 figure; hold on;
 for j = plot30I
     plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)), 'Color', clrs(j));
     plot(xL_sorted, Cp30L(j,:), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
-set(gca,'YDir','reverse'); % conventional Cp plotting
-xlabel('Normalized Chord, x/c');
-ylabel('Pressure Coefficient, C_p');
-title('C_p vs x/c for 30 m/s');
-xlim([0 1]); grid on;
-legend('Location','eastoutside');
-theme(gcf, 'light');
-exportgraphics(gcf, 'figures/CPvsXC_30mps.pdf', 'ContentType', 'vector');
-hold off;
+set(gca,'YDir','reverse'); xlabel('Normalized Chord, x/c'); ylabel('Pressure Coefficient, C_p');
+title('C_p vs x/c for 30 m/s'); xlim([0 1]); grid on; legend('Location','eastoutside');
+if exist('theme','file'); theme(gcf,'light'); end
+exportgraphics(gcf, 'figures/CPvsXC_30mps.pdf', 'ContentType', 'vector'); hold off;
 
-% Coefficient of Lift vs Angle of Attack
+%% CL vs AoA with NACA overlay
 figure; hold on;
 plot(Data15(:,1), CL15, 'o-', 'DisplayName', '15 m/s');
 plot(Data30(:,1), CL30, 'o-', 'DisplayName', '30 m/s');
-%plot(NACA_data(:,1), NACA_data(:,2), 'DisplayName', 'NACA TR 628');
-ylabel('Coefficient of Lift');
-xlabel('AoA (deg)');
+plot(NACA_data(:,1), NACA_data(:,2), 'k-', 'DisplayName', 'NACA TR 628');
+ylabel('Coefficient of Lift'); xlabel('AoA (deg)');
 title('Coefficient of Lift vs Angle of Attack');
 grid on; legend('Location','best');
-theme(gcf, 'light');
-exportgraphics(gcf, 'figures/CLvsAoA.pdf', 'ContentType', 'vector');
-hold off;
+if exist('theme','file'); theme(gcf,'light'); end
+exportgraphics(gcf, 'figures/CLvsAoA.pdf', 'ContentType', 'vector'); hold off;
