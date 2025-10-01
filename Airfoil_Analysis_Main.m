@@ -258,7 +258,7 @@ clrs(28) = clrs(25);
 figure; hold on;
 for j = plot15I
     plot(xU_sorted, VoverV15U(j, :), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f° %s', Data15(j,1)), 'Color', clrs(j));
-    plot(xL_sorted, VoverV15L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
+    plot(xL_sorted, VoverV15L(j, :), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
 ylabel('Velocity Ratio, V/V_\infty');
@@ -272,7 +272,7 @@ hold off;
 figure; hold on;
 for j = plot30I
     plot(xU_sorted, VoverV30U(j, :), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)), 'Color', clrs(j));
-    plot(xL_sorted, VoverV30L(j, :), '-', 'HandleVisibility','off', 'Color', clrs(j));
+    plot(xL_sorted, VoverV30L(j, :), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
 xlabel('Normalized Chord, x/c');
 ylabel('Velocity Ratio, V/V_\infty');
@@ -287,7 +287,7 @@ hold off;
 figure; hold on;
 for j=plot15I
     plot(xU_sorted, Cp15U(j,:), '-', 'DisplayName', sprintf('15 m/s  AoA = %.1f°', Data15(j,1)),'Color', clrs(j));
-    plot(xL_sorted, Cp15L(j,:), '-', 'HandleVisibility','off', 'Color', clrs(j));
+    plot(xL_sorted, Cp15L(j,:), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
 set(gca,'YDir','reverse'); % conventional Cp plotting
 xlabel('Normalized Chord, x/c');
@@ -302,7 +302,7 @@ hold off;
 figure; hold on;
 for j = plot30I
     plot(xU_sorted, Cp30U(j,:), '-', 'DisplayName', sprintf('30 m/s  AoA = %.1f°', Data30(j,1)), 'Color', clrs(j));
-    plot(xL_sorted, Cp30L(j,:), '-', 'HandleVisibility','off', 'Color', clrs(j));
+    plot(xL_sorted, Cp30L(j,:), ':',  'LineWidth', 2, 'HandleVisibility','off', 'Color', clrs(j));
 end
 set(gca,'YDir','reverse'); % conventional Cp plotting
 xlabel('Normalized Chord, x/c');
